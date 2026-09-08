@@ -1,0 +1,15 @@
+{
+  "name": "Kartopu — Temettü Takip",
+  "short_name": "Kartopu",
+  "description": "BIST ve global temettü portföyünü tek yerde takip et, kartopu etkisini gör.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12281F",
+  "theme_color": "#12281F",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
