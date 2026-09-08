@@ -627,12 +627,31 @@ function renderHoldings() {
   const totalCost = totalPortfolioCostTRY();
   const totalPnl = totalValue - totalCost;
   const totalPnlPct = totalCost > 0 ? totalPnl/totalCost : 0;
+   let dayChangeTRY = 0;
+let previousValueTRY = 0;
+
+state.holdings.forEach(function(h) {
+  if (h.currentPrice === null || h.currentPrice === undefined ||
+      h.previousClose === null || h.previousClose === undefined) return;
+
+  const currentPrice = Number(h.currentPrice);
+  const previousClose = Number(h.previousClose);
+  const shares = Number(h.shares);
+
+  if (!isFinite(currentPrice) || !isFinite(previousClose) || previousClose <= 0) return;
+
+  dayChangeTRY += toTRY((currentPrice - previousClose) * shares, h.currency);
+  previousValueTRY += toTRY(previousClose * shares, h.currency);
+});
+
+const dayChangePct = previousValueTRY > 0 ? dayChangeTRY / previousValueTRY : null;
 
   return `
     <div class="card" style="text-align:center;">
       <div class="card-title" style="text-align:left;">Toplam Portföy</div>
       <div style="font-family:'IBM Plex Mono',monospace; font-size:26px; font-weight:600;">${fmtMoney(totalValue,'TRY')}</div>
       <div style="color:${totalPnl>=0?'var(--green)':'var(--red)'}; font-size:13px; margin-top:4px;">${totalPnl>=0?'▲':'▼'} ${fmtMoney(Math.abs(totalPnl),'TRY')} (${fmtPct(totalPnlPct)})</div>
+      ${dayChangePct !== null ? `<div style="color:${dayChangeTRY>=0?'var(--green)':'var(--red)'}; font-size:13px; margin-top:5px;">Bugün ${dayChangeTRY>=0?'▲':'▼'} ${fmtMoney(Math.abs(dayChangeTRY),'TRY')} (${fmtPct(Math.abs(dayChangePct))})</div>` : ''}
       <button class="btn btn-gold" id="refresh-prices" style="width:100%; margin-top:14px;">↻ Fiyatları Güncelle</button>
       <p class="helper-text" id="price-refresh-status" style="margin-bottom:0;">${priceStatusText()}</p>
     </div>
