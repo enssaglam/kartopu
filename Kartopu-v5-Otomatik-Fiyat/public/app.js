@@ -690,6 +690,33 @@ ${item.dayPct !== null ? `<span class="meta" style="color:${item.dayPct >= 0 ? '
 function openHoldingDetail(h) {
   if (!h) return;
 
+  const value = holdingValueTRY(h);
+  const cost = holdingCostTRY(h);
+  const pnl = value - cost;
+  const pnlPct = cost > 0 ? pnl / cost : 0;
+
+  const currentPrice =
+    (h.currentPrice !== null && h.currentPrice !== undefined && h.currentPrice !== '')
+      ? Number(h.currentPrice)
+      : Number(h.avgCost);
+
+  const previousClose =
+    (h.previousClose !== null && h.previousClose !== undefined && h.previousClose !== '')
+      ? Number(h.previousClose)
+      : null;
+
+  const dayPct =
+    previousClose !== null && previousClose > 0
+      ? (currentPrice - previousClose) / previousClose
+      : null;
+
+  const dayChange =
+    previousClose !== null && previousClose > 0
+      ? (currentPrice - previousClose) * Number(h.shares)
+      : null;
+
+  const annualNet = annualNetDividendForHolding(h);
+
   const overlay = document.createElement('div');
   overlay.className = 'overlay';
 
@@ -702,9 +729,49 @@ function openHoldingDetail(h) {
 
       <div class="card">
         <div class="card-title">Pozisyon Özeti</div>
-        <p>${h.shares} adet</p>
-        <p>Ortalama Maliyet: ${fmtMoney(h.avgCost, h.currency)}</p>
-        <p>Güncel Fiyat: ${fmtMoney(h.currentPrice, h.currency)}</p>
+
+        <p><strong>${h.shares} adet</strong></p>
+
+        <p>
+          Ortalama Maliyet:
+          <strong>${fmtMoney(h.avgCost, h.currency)}</strong>
+        </p>
+
+        <p>
+          Güncel Fiyat:
+          <strong>${fmtMoney(currentPrice, h.currency)}</strong>
+        </p>
+
+        <p>
+          Pozisyon Değeri:
+          <strong>${fmtMoney(value, 'TRY')}</strong>
+        </p>
+
+        <p>
+          Toplam Getiri:
+          <strong style="color:${pnl >= 0 ? 'var(--green)' : 'var(--red)'};">
+            ${pnl >= 0 ? '▲' : '▼'} ${fmtMoney(Math.abs(pnl), 'TRY')}
+            (${fmtPct(Math.abs(pnlPct))})
+          </strong>
+        </p>
+
+        ${dayPct !== null ? `
+          <p>
+            Bugün:
+            <strong style="color:${dayPct >= 0 ? 'var(--green)' : 'var(--red)'};">
+              ${dayPct >= 0 ? '▲' : '▼'}
+              ${fmtMoney(Math.abs(dayChange), h.currency)}
+              (${fmtPct(Math.abs(dayPct))})
+            </strong>
+          </p>
+        ` : ''}
+
+        <p>
+          Yıllık Net Temettü:
+          <strong style="color:#9C7A2E;">
+            ${fmtMoney(annualNet, 'TRY')}
+          </strong>
+        </p>
       </div>
     </div>
   `;
