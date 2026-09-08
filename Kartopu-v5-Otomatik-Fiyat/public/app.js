@@ -494,7 +494,7 @@ function attachGlobalHandlers() {
   qsaEach(document, '[data-holding-id]', function(row) {
     row.addEventListener('click', function() {
       const h = state.holdings.find(function(x) { return x.id === row.dataset.holdingId; });
-      if (h) openHoldingForm(h);
+     if (h) openHoldingDetail(h);
     });
   });
   qsaEach(document, '[data-dividend-id]', function(row) {
@@ -687,7 +687,34 @@ ${item.dayPct !== null ? `<span class="meta" style="color:${item.dayPct >= 0 ? '
     <p class="helper-text">Bir satıra dokunarak düzenleyebilir veya silebilirsin.</p>
   `;
 }
+function openHoldingDetail(h) {
+  if (!h) return;
 
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+
+  overlay.innerHTML = `
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2>${h.symbol} Detay</h2>
+        <button class="close-x">✕</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Pozisyon Özeti</div>
+        <p>${h.shares} adet</p>
+        <p>Ortalama Maliyet: ${fmtMoney(h.avgCost, h.currency)}</p>
+        <p>Güncel Fiyat: ${fmtMoney(h.currentPrice, h.currency)}</p>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('.close-x').addEventListener('click', function() {
+    overlay.remove();
+  });
+}
 function openHoldingForm(existing) {
   const isEdit = !!existing;
   const h = existing || { market: 'BIST', symbol: '', shares: '', avgCost: '', currentPrice: '', currency: 'TRY' };
