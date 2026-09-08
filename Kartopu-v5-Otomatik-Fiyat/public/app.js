@@ -336,6 +336,7 @@ function applyQuotes(payload) {
     });
     if (!h || q.price === null || q.price === undefined || !isFinite(Number(q.price))) return;
     h.currentPrice = Number(q.price);
+    h.previousClose = (q.previousClose !== null && q.previousClose !== undefined && isFinite(Number(q.previousClose))) ? Number(q.previousClose) : null;
     h.priceUpdatedAt = q.updatedAt || new Date().toISOString();
     h.priceSource = q.source || 'Piyasa verisi';
     h.priceAuto = true;
@@ -612,7 +613,9 @@ function renderHoldings() {
     const cost = holdingCostTRY(h);
     const pnl = value - cost;
     const pnlPct = cost > 0 ? pnl/cost : 0;
-    return { h: h, value: value, cost: cost, pnl: pnl, pnlPct: pnlPct, annualNet: annualNetDividendForHolding(h) };
+    const previousClose = Number(h.previousClose);
+    const dayPct = previousClose > 0 ? (Number(h.currentPrice) - previousClose) / previousClose : null;
+    return { h: h, value: value, cost: cost, pnl: pnl, pnlPct: pnlPct, dayPct: dayPct, annualNet: annualNetDividendForHolding(h) };
   });
 
   let sorted;
@@ -650,7 +653,8 @@ function renderHoldings() {
             <div class="left">
               <span class="symbol">${h.symbol} <span class="tag ${h.market==='BIST'?'bist':'global'}">${h.market==='BIST'?'BIST':'Global'}</span></span>
               <span class="meta">${h.shares} adet · Güncel ${fmtMoney((h.currentPrice!==null && h.currentPrice!==undefined)?h.currentPrice:h.avgCost, h.currency)} · ${fmtPct(Math.abs(item.pnlPct))} getiri</span>
-              <span class="meta" style="color:#9C7A2E;">Yıllık: ${fmtMoney(item.annualNet,'TRY')} net</span>
+${item.dayPct !== null ? `<span class="meta" style="color:${item.dayPct >= 0 ? 'var(--green)' : 'var(--red)'};">Bugün ${item.dayPct >= 0 ? '▲' : '▼'} ${fmtPct(Math.abs(item.dayPct))}</span>` : ''}
+<span class="meta" style="color:#9C7A2E;">Yıllık: ${fmtMoney(item.annualNet,'TRY')} net</span>
               ${h.priceAuto && h.priceUpdatedAt ? '<span class="meta market-source">Otomatik · ' + new Date(h.priceUpdatedAt).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}) + '</span>' : ''}
             </div>
           </div>
