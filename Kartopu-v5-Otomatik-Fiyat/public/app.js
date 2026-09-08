@@ -716,7 +716,14 @@ function openHoldingDetail(h) {
       : null;
 
   const annualNet = annualNetDividendForHolding(h);
-
+  const dividendHistory = state.dividends
+  .filter(function(d) {
+    return d.symbol.toUpperCase() === h.symbol.toUpperCase();
+  })
+  .sort(function(a, b) {
+    return new Date(b.date) - new Date(a.date);
+  });
+   
   const overlay = document.createElement('div');
   overlay.className = 'overlay';
 
@@ -771,9 +778,34 @@ function openHoldingDetail(h) {
           <strong style="color:#9C7A2E;">
             ${fmtMoney(annualNet, 'TRY')}
           </strong>
-        </p>
+                </p>
 
-        <button class="btn btn-primary" id="edit-holding-detail" style="margin-top:12px;">
+        <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--paper-line);">
+          <div class="card-title" style="margin-bottom:10px;">Temettü Geçmişi</div>
+
+          ${dividendHistory.length === 0 ? `
+            <p class="helper-text" style="margin:0;">
+              Henüz temettü kaydı yok.
+            </p>
+          ` : dividendHistory.map(function(d) {
+            return `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--paper-line);">
+                <div>
+                  <strong>${fmtDate(d.date)}</strong>
+                  <div class="meta">
+                    ${fmtMoney(d.perShare, d.currency)} / adet · ${d.shares} adet
+                  </div>
+                </div>
+
+                <strong style="color:#9C7A2E;">
+                  ${fmtMoney(dividendNetTRY(d), 'TRY')}
+                </strong>
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <button class="btn btn-primary" id="edit-holding-detail" style="margin-top:18px;">
           Düzenle
         </button>
       </div>
