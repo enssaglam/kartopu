@@ -772,11 +772,19 @@ function openHoldingDetail(h) {
             ${fmtMoney(annualNet, 'TRY')}
           </strong>
         </p>
+
+        <button class="btn btn-primary" id="edit-holding-detail" style="margin-top:12px;">
+          Düzenle
+        </button>
       </div>
     </div>
   `;
 
   document.body.appendChild(overlay);
+     overlay.querySelector('#edit-holding-detail').addEventListener('click', function() {
+     overlay.remove();
+     openHoldingForm(h);
+  });
 
   overlay.querySelector('.close-x').addEventListener('click', function() {
     overlay.remove();
