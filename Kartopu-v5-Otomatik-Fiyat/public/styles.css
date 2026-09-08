@@ -34,14 +34,15 @@
 }
 
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
+html,body{margin:0;}
 body{
   font-family:'Inter',sans-serif;
   background:var(--paper);
   color:var(--ink);
   -webkit-font-smoothing:antialiased;
-  min-height:100vh;
-  padding-bottom:78px;
+  min-height:100dvh;
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:calc(78px + env(safe-area-inset-bottom));
 }
 h1,h2,h3,.display{
   font-family:'Fraunces',serif;
@@ -53,7 +54,7 @@ h1,h2,h3,.display{
 button{ font-family:'Inter',sans-serif; }
 a{ color:inherit; }
 
-#app{ max-width:520px; margin:0 auto; min-height:100vh; position:relative; background:var(--paper); }
+#app{ max-width:520px; margin:0 auto; min-height:100dvh; position:relative; background:var(--paper); }
 
 .topbar{
   display:flex; align-items:center; justify-content:space-between;
