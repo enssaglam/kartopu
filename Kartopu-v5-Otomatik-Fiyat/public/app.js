@@ -720,7 +720,13 @@ ${item.dayPct !== null ? `<span class="meta" style="color:${item.dayPct >= 0 ? '
 }
 function openHoldingDetail(h) {
   if (!h) return;
-
+const holdingTransactions = (state.transactions || [])
+  .filter(function(t) {
+    return t.holdingId === h.id;
+  })
+  .sort(function(a, b) {
+    return String(b.date || '').localeCompare(String(a.date || ''));
+  });
   const value = holdingValueTRY(h);
   const cost = holdingCostTRY(h);
   const pnl = value - cost;
@@ -810,7 +816,30 @@ function openHoldingDetail(h) {
             ${fmtMoney(annualNet, 'TRY')}
           </strong>
                 </p>
+<div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--paper-line);">
+  <div class="card-title" style="margin-bottom:10px;">İşlem Geçmişi</div>
 
+  ${holdingTransactions.length === 0 ? `
+    <p class="helper-text" style="margin:0;">
+      Henüz alış işlemi yok.
+    </p>
+  ` : holdingTransactions.map(function(t) {
+    return `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--paper-line);">
+        <div>
+          <strong>${fmtDate(t.date)}</strong>
+          <div class="meta">
+            ${t.shares} adet × ${fmtMoney(t.price, t.currency)}
+          </div>
+        </div>
+
+        <strong>
+          ${fmtMoney(t.shares * t.price, t.currency)}
+        </strong>
+      </div>
+    `;
+  }).join('')}
+</div>
         <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--paper-line);">
           <div class="card-title" style="margin-bottom:10px;">Temettü Geçmişi</div>
 
