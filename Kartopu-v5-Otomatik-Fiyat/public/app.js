@@ -22,6 +22,7 @@ const DEFAULT_STATE = {
     autoPriceRefresh: true,
     priceRefreshMinutes: 15,
     pricesUpdated: null,
+    dividendGoalAnnual: 0,
     snowball: { years: 10, growthRate: 0.08, reinvest: true, monthlyAdd: 0 },
   },
   activeTab: 'dashboard',
@@ -519,6 +520,8 @@ function renderDashboard() {
   const pnl = totalValue - totalCost;
   const pnlPct = totalCost > 0 ? pnl / totalCost : 0;
   const yearDividend = thisYearNetDividendTRY();
+  const dividendGoal = Number(state.settings.dividendGoalAnnual || 0);
+  const dividendGoalPct = dividendGoal > 0 ? Math.min(yearDividend / dividendGoal, 1) : 0;
   const yieldOnCost = totalCost > 0 ? last12MonthsNetDividendTRY() / totalCost : 0;
   const alloc = marketAllocation();
   const allocTotal = (alloc.BIST + alloc.GLOBAL) || 1;
@@ -559,6 +562,33 @@ function renderDashboard() {
         <div class="sub">${state.dividends.length} temettü kaydı</div>
       </div>
     </div>
+        ${dividendGoal > 0 ? `
+    <div class="card">
+      <div class="card-title">Yıllık Temettü Hedefi</div>
+
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px;">
+        <div>
+          <div class="meta">Bu yıl</div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:#9C7A2E;">
+            ${fmtMoney(yearDividend, 'TRY')}
+          </div>
+        </div>
+
+        <div style="text-align:right;">
+          <div class="meta">Hedef</div>
+          <strong>${fmtMoney(dividendGoal, 'TRY')}</strong>
+        </div>
+      </div>
+
+      <div style="height:9px; background:var(--paper-line); border-radius:999px; overflow:hidden; margin-top:12px;">
+        <div style="height:100%; width:${Math.round(dividendGoalPct * 100)}%; background:#9C7A2E; border-radius:999px;"></div>
+      </div>
+
+      <div class="meta" style="margin-top:7px;">
+        %${Math.round(dividendGoalPct * 100)} tamamlandı
+      </div>
+    </div>
+    ` : ''}
 
     <div class="card">
       <div class="card-title">Piyasa Dağılımı</div>
@@ -1313,7 +1343,7 @@ function renderSettings() {
     </div>
 
     <div class="card">
-      <div class="card-title">Piyasa Verileri</div>
+    <div class="card-title">Piyasa Verileri</div>
       <div class="switch-row">
         <div>
           <div style="font-size:13.5px; font-weight:600;">Otomatik fiyat güncelleme</div>
@@ -1346,6 +1376,14 @@ function renderSettings() {
     </div>
 
     <div class="card">
+  <div class="card-title">Temettü Hedefi</div>
+  <div class="field">
+    <label>Yıllık Net Temettü Hedefi (₺)</label>
+    <input type="number" step="1000" id="set-dividend-goal" class="mono" value="${s.dividendGoalAnnual || 0}">
+    <p class="helper-text">Bu yıl ulaşmak istediğin net temettü gelirini belirle.</p>
+  </div>
+</div>
+   <div class="card">
       <div class="card-title">Stopaj Oranları</div>
       <div class="field-row">
         <div class="field">
@@ -1416,6 +1454,10 @@ function attachSettingsHandlers() {
     state.settings.usdTryRate = parseFloat(e.target.value) || state.settings.usdTryRate;
     saveState();
   });
+   document.getElementById('set-dividend-goal').addEventListener('change', function(e) {
+  state.settings.dividendGoalAnnual = Math.max(0, parseFloat(e.target.value) || 0);
+  saveState();
+});
   document.getElementById('set-bist-tax').addEventListener('change', function(e) {
     state.settings.bistWithholding = (parseFloat(e.target.value) || 0) / 100;
     saveState();
