@@ -12,6 +12,7 @@ function deepClone(obj) {
 
 const DEFAULT_STATE = {
   holdings: [],
+  transactions: [],
   dividends: [],
   settings: {
     usdTryRate: 48.10,
@@ -835,14 +836,24 @@ function openHoldingDetail(h) {
           }).join('')}
         </div>
 
-        <button class="btn btn-primary" id="edit-holding-detail" style="margin-top:18px;">
-          Düzenle
-        </button>
+        <div style="display:flex; gap:10px; margin-top:18px;">
+  <button class="btn btn-primary" id="add-buy-detail" style="flex:1;">
+    Alış Ekle
+  </button>
+
+  <button class="btn" id="edit-holding-detail" style="flex:1;">
+    Düzenle
+  </button>
+</div>
       </div>
     </div>
   `;
 
   document.body.appendChild(overlay);
+   overlay.querySelector('#add-buy-detail').addEventListener('click', function() {
+  overlay.remove();
+  openBuyForm(h);
+});
      overlay.querySelector('#edit-holding-detail').addEventListener('click', function() {
      overlay.remove();
      openHoldingForm(h);
@@ -852,6 +863,87 @@ function openHoldingDetail(h) {
     overlay.remove();
   });
 }
+
+function openBuyForm(h) {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  overlay.innerHTML = `
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2>${h.symbol} Alış Ekle</h2>
+        <button class="close-x">✕</button>
+      </div>
+
+      <div class="field">
+        <label>Alış Tarihi</label>
+        <input type="date" id="buy-date" value="${today}">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Adet</label>
+          <input type="number" step="any" id="buy-shares" class="mono" placeholder="Örn. 50">
+        </div>
+
+        <div class="field">
+          <label>Alış Fiyatı</label>
+          <input type="number" step="any" id="buy-price" class="mono" placeholder="Örn. 200">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="save-buy" style="width:100%; margin-top:16px;">
+        Alışı Kaydet
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('.close-x').addEventListener('click', function() {
+    overlay.remove();
+  });
+
+  overlay.querySelector('#save-buy').addEventListener('click', function() {
+    const shares = parseFloat(overlay.querySelector('#buy-shares').value);
+    const price = parseFloat(overlay.querySelector('#buy-price').value);
+    const date = overlay.querySelector('#buy-date').value;
+
+    if (!shares || shares <= 0 || !price || price <= 0 || !date) {
+      alert('Tarih, adet ve alış fiyatı zorunlu.');
+      return;
+    }
+
+    const oldShares = Number(h.shares || 0);
+    const oldAvgCost = Number(h.avgCost || 0);
+
+    const newShares = oldShares + shares;
+    const newAvgCost =
+      ((oldShares * oldAvgCost) + (shares * price)) / newShares;
+
+    h.shares = newShares;
+    h.avgCost = newAvgCost;
+
+    state.transactions.push({
+      id: uid(),
+      holdingId: h.id,
+      type: 'BUY',
+      market: h.market,
+      symbol: h.symbol,
+      shares: shares,
+      price: price,
+      currency: h.currency,
+      date: date
+    });
+
+    saveState();
+    overlay.remove();
+    render();
+  });
+}
+
 function openHoldingForm(existing) {
   const isEdit = !!existing;
   const h = existing || { market: 'BIST', symbol: '', shares: '', avgCost: '', currentPrice: '', currency: 'TRY' };
@@ -933,11 +1025,22 @@ function openHoldingForm(existing) {
       record.priceSource = 'Manuel';
       record.priceUpdatedAt = new Date().toISOString();
     }
-    if (isEdit) {
-      const idx = state.holdings.findIndex(function(x) { return x.id === h.id; });
-      state.holdings[idx] = record;
-    } else {
-      state.holdings.push(record);
+ if (isEdit) {
+   const idx = state.holdings.findIndex(function(x) { return x.id === h.id; });
+   state.holdings[idx] = record;
+   } else {
+   state.holdings.push(record);
+state.transactions.push({
+   id: uid(),
+   holdingId: record.id,
+   type: 'BUY',
+   market: record.market,
+   symbol: record.symbol,
+   shares: record.shares,
+   price: record.avgCost,
+   currency: record.currency,
+   date: new Date().toISOString().slice(0, 10)
+});
     }
     saveState();
     overlay.remove();
