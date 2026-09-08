@@ -684,7 +684,7 @@ ${item.dayPct !== null ? `<span class="meta" style="color:${item.dayPct >= 0 ? '
         </div>`;
       }).join('')}
     </div>
-    <p class="helper-text">Bir satıra dokunarak düzenleyebilir veya silebilirsin.</p>
+    <p class="helper-text">Bir pozisyona dokunarak detaylarını görüntüleyebilirsin.</p>
   `;
 }
 function openHoldingDetail(h) {
